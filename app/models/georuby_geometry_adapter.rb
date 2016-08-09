@@ -6,6 +6,7 @@
 #
 #-------------------------------------------------------------------------------
 class GeorubyGeometryAdapter
+  include GeoRuby::SimpleFeatures if defined?(GeoRuby)
 
   DEFAULT_SRID = SystemConfig.instance.srid
 
