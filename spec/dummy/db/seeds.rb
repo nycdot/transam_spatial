@@ -1,4 +1,5 @@
 TransamCore::Engine.load_seed
+TransamTransit::Engine.load_seed
 TransamSpatial::Engine.load_seed
 
 puts "  Processing system_config"
@@ -16,7 +17,6 @@ SystemConfig.find_or_create_by(:customer_id => 1,
   :geocoder_region => 'us',
   :num_forecasting_years => 12,
   :num_reporting_years => 20,
-  :asset_base_class_name => 'Asset',
   :max_rows_returned => 500,
   :data_file_path => '/data/'
 )

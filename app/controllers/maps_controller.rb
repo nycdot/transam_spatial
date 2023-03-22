@@ -1,20 +1,13 @@
 class MapsController < AssetsController
+  def map
+    add_breadcrumb "Map"
 
-  def index
+    @show_default = true if params[:show_default] == 'true'
 
-    id_list = get_cached_objects(INDEX_KEY_LIST_VAR)
-    @assets = Asset.where(:object_key => id_list)
-    markers = []
-    @assets.each do |a|
-      asset = Asset.get_typed_asset(a)
-      if asset.mappable?
-        markers << asset.map_marker
-      end
-    end
-    @markers = markers.to_json
-    respond_to do |format|
-      format.html
-      format.json { render :json => @asset_id_list.to_json }
+    if params[:searcher].blank?
+      @searcher = AssetMapSearcher.new
+    else
+      @searcher = AssetMapSearcher.new(params[:searcher])
     end
   end
 
@@ -23,13 +16,36 @@ class MapsController < AssetsController
   def marker
 
     @marker = {}
-    a = Asset.find_by(:object_key => params[:object_key])
-    if a
-      asset = Asset.get_typed_asset(a)
-      if a.mappable?
-        @marker = a.get_map_marker
+    a = Rails.application.config.asset_base_class_name.constantize.find_by(:object_key => params[:object_key])
+    if asset
+      asset = Rails.application.config.asset_base_class_name.constantize.get_typed_asset(a)
+      if asset.mappable?
+        @marker = asset.get_map_marker
       end
     end
+  end
+
+  # Called via AJAX to get dynamic content via AJAX
+  def map_popup
+    str = ""
+    a = Rails.application.config.asset_base_class_name.constantize.find_by(:object_key => params[:id])
+    if a
+      asset = Rails.application.config.asset_base_class_name.constantize.get_typed_asset(a)
+      if asset && asset.mappable?
+        str = render_to_string(:partial => "/maps/map_popup", :locals => { :asset => asset })
+      end
+    end
+
+    render json: str.to_json
+  end
+
+  # Called via AJAX to get dynamic content via AJAX
+  def map_cluster_popup
+    assets = Rails.application.config.asset_base_class_name.constantize.where(:object_key => params[:object_keys])
+
+    str = render_to_string(:partial => "/shared/map_cluster_popup", :locals => { :assets => assets })
+
+    render json: str.to_json
   end
 
 end

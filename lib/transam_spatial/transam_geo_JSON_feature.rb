@@ -38,9 +38,9 @@ module TransamGeoJSONFeature
     # ----------------------------------------------------
     # The name of the attribute to use for encoding the geoJSON feature. This
     # atribute must erespond to :x and :y
-    class_attribute :_geojson_geometry_attribute_name
+    class_attribute :_geojson_geometry_attribute_name, default: 'geometry'
     # A collection of attributes to encode into the geoJSON properties list
-    class_attribute :_geojson_properties
+    class_attribute :_geojson_properties, default: [:object_key]
 
     # ----------------------------------------------------
     # Validations
@@ -58,7 +58,7 @@ module TransamGeoJSONFeature
 
     def configure_geojson(options = {})
       self._geojson_geometry_attribute_name = (options[:geometry_attribute_name] || :geometry).to_s
-      self._geojson_properties = (options[:geojson_properties] || [:object_key])
+      self._geojson_properties = (options[:geojson_properties] || Rails.application.config.try(:geojson_properties) || [:object_key])
     end
 
   end
@@ -72,13 +72,19 @@ module TransamGeoJSONFeature
   def to_geoJSON
     geom_column = self.send(_geojson_geometry_attribute_name)
     unless geom_column.nil?
-      if geom_column.dimension == 0
-        geo = {type: 'Point', coordinates: [geom_column.x, geom_column.y]}
+      if Rails.application.config.transam_spatial_geometry_adapter == 'rgeo'
+        if geom_column.dimension == 0
+          geo = {type: 'Point', coordinates: [geom_column.x, geom_column.y]}
+        else
+          coords = []
+          geom_column.points.each {|pt| coords << [pt.x, pt.y]}
+          geo = {type: 'LineString', coordinates: coords}
+        end
       else
-        coords = []
-        geom_column.points.each {|pt| coords << [pt.x, pt.y]}
-        geo = {type: 'LineString', coordinates: coords}
+        # GeoRuby
+        geo = {type: 'Point', coordinates: [geom_column.x, geom_column.y]}
       end
+
       props = {}
       props[:id] = self.object_key
       props[:feature_class] = self.class.name

@@ -61,11 +61,11 @@ module TransamGeoLocatable
     # ----------------------------------------------------
     # Attributes
     # ----------------------------------------------------
-    class_attribute :_geolocatable_geometry_attribute_name
-    class_attribute :_icon_class
-    class_attribute :_update_on_save
-    class_attribute :_use_nodes
-    class_attribute :_tolerate_update_geometry_error
+    class_attribute :_geolocatable_geometry_attribute_name, default: "geometry"
+    class_attribute :_icon_class, default: "blueIcon"
+    class_attribute :_update_on_save, default: true
+    class_attribute :_use_nodes, default: false
+    class_attribute :_tolerate_update_geometry_error, default: false
     
     # ----------------------------------------------------
     # Validations
@@ -123,23 +123,50 @@ module TransamGeoLocatable
   # TODO make this more generic for line and polygonal assets
   #
   def map_marker(draggable=false, zindex = 0, icon = _icon_class)
-    _geom_column = self.send(_geolocatable_geometry_attribute_name)
-    if _geom_column.present?
-      lat = _geom_column.y
-      lng = _geom_column.x
-      {
-        "id" => object_key,
-        "lat" =>lat,
-        "lng" => lng,
-        "zindex" => zindex,
-        "name" => name,
-        "iconClass" => icon,
-        "draggable" => draggable,
-        "title" => name,
-        "description" => description
-      }
-    else
-      {}
+    prepare_marker(draggable, zindex, icon)
+  end
+
+  def map_marker_without_popup(draggable=false, zindex = 0, icon = _icon_class)
+    prepare_marker(draggable, zindex, icon, true)
+  end
+
+  def longitude_from_geometry
+    "#{self.send(_geolocatable_geometry_attribute_name).x}&deg;".html_safe if self.send(_geolocatable_geometry_attribute_name).present?
+  end
+
+  def latitude_from_geometry
+    "#{self.send(_geolocatable_geometry_attribute_name).y}&deg;".html_safe if self.send(_geolocatable_geometry_attribute_name).present?
+  end
+
+  def dms_longitude_from_geometry
+    if self.send(_geolocatable_geometry_attribute_name).present?
+      decimal_abs = self.send(_geolocatable_geometry_attribute_name).x.abs # absolute value of decimal version
+
+      degrees = decimal_abs.to_i
+
+      mins = ((decimal_abs - degrees)*60.0).to_i
+
+      secs = ((decimal_abs - degrees - mins/60.0)*3600.0).round(4).to_i
+
+      direction = self.send(_geolocatable_geometry_attribute_name).x < 0 ? 'W' : 'E'
+
+      "#{degrees}&deg; #{mins}\' #{secs}\" #{direction}".html_safe
+    end
+  end
+
+  def dms_latitude_from_geometry
+    if self.send(_geolocatable_geometry_attribute_name).present?
+      decimal_abs = self.send(_geolocatable_geometry_attribute_name).y.abs # absolute value of decimal version
+
+      degrees = decimal_abs.to_i
+
+      mins = ((decimal_abs - degrees)*60.0).to_i
+
+      secs = ((decimal_abs - degrees - mins/60.0)*3600.0).round(4).to_i
+
+      direction = self.send(_geolocatable_geometry_attribute_name).y < 0 ? 'S' : 'N'
+
+      "#{degrees}&deg; #{mins}\' #{secs}\" #{direction}".html_safe
     end
   end
 
@@ -249,5 +276,30 @@ module TransamGeoLocatable
       update_geometry
     end
     result
+  end
+
+  private
+
+  def prepare_marker(draggable=false, zindex = 0, icon = _icon_class, no_popup = false)
+    _geom_column = self.send(_geolocatable_geometry_attribute_name)
+    if _geom_column.present?
+      lat = _geom_column.y
+      lng = _geom_column.x
+      marker = {
+        "id" => object_key,
+        "lat" =>lat,
+        "lng" => lng,
+        "zindex" => zindex,
+        "name" => try(:name) || to_s,
+        "iconClass" => icon,
+        "draggable" => draggable,
+        "title" => try(:name) || to_s
+      }
+
+      marker['description'] = description unless no_popup
+      marker
+    else
+      {}
+    end
   end
 end

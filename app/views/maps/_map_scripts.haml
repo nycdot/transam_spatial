@@ -1,0 +1,182 @@
+:javascript
+  var MAP_SNAPSHOT_CACHE_KEY = "transam-map-snapshot";
+  var _isCaching = true;
+
+  // Get the snapshot params that can be used to recover the map state
+  function getMapSnapshot() {
+    var map = leaflet_tools.map();
+    var params = {};
+
+    // bounds
+    var bounds = map.getBounds();
+    params["bounds"] = {
+      ymin: bounds.getWest(),
+      ymax: bounds.getEast(),
+      xmin: bounds.getSouth(),
+      xmax: bounds.getNorth()
+    };
+
+    // layers
+    var basemap = $('input.basemap_layer:checked').data('type') || "default";
+    var overlay_keys = [];
+    $('input.overlay_layer:checked').each(function() {
+      overlay_keys.push($(this).data('key'));
+    });
+    var asset_types = {};
+    $('input.asset_type_layer:checked').each(function() {
+      var subtypes = [];
+      $(this).parents('.asset_type_panel').find('input.asset_subtype_layer:checked').each(function() {
+        subtypes.push($(this).data('type'));
+      });
+      asset_types[$(this).data('type')] = subtypes;
+    });
+
+    params["layers"] = {
+      basemap_type: basemap,
+      overlay_keys: overlay_keys,
+      asset_types: asset_types
+    };
+
+    // filters
+    params["filters"] = cache_filters();
+
+    return params;
+  }
+
+  // restorep revious map state based on latest map snapshot cache
+  function restoreMap() {
+    var map = leaflet_tools.map();
+    var snapshot = localStorage.getItem(MAP_SNAPSHOT_CACHE_KEY);
+    if(!snapshot) {
+      return;
+    }
+
+    snapshot = JSON.parse(snapshot);
+
+    // restore map bounds
+    var bounds = snapshot["bounds"];
+    if(bounds) {
+      map.fitBounds([
+        [bounds.xmin, bounds.ymin],
+        [bounds.xmax, bounds.ymax]
+      ]);
+    }
+
+    var layers = snapshot["layers"];
+    // restore basemap
+    var basemap_type = layers['basemap_type'];
+    if(basemap_type) {
+      $('input.basemap_layer[data-type=' + basemap_type + ']').prop('checked', true).trigger('change');
+    }
+
+    // restore overlays
+    var overlay_keys = layers['overlay_keys'];
+    if(overlay_keys && overlay_keys.length > 0) {
+      overlay_keys.forEach(function(key) {
+        $('input.overlay_layer[data-key=' + key + ']').prop('checked', true).trigger('change');
+      });
+    }
+
+    // restore assets
+    var asset_types = layers['asset_types'];
+    if(asset_types) {
+      for(var type in asset_types) {
+        $('input.asset_type_layer[data-type=' + type + ']').prop('checked', true);
+        var subtypes = asset_types[type];
+        subtypes.forEach(function(subtype) {
+          $('input.asset_subtype_layer[data-type=' + subtype + ']').prop('checked', true);
+        });
+      }
+    }
+
+    // restore filters
+    load_cached_filters(snapshot['filters'] || {});
+
+    $('#submit_filters_btn').click();
+  }
+
+  // resize map to fill in the whole page
+  function resize_map() {
+    $( ".map-container" ).height( $( "footer" ).offset().top - $( ".map-container" ).offset().top );
+    var map = leaflet_tools.map();
+    map.invalidateSize();
+  }
+
+  $(function() {
+    resize_map();
+
+    // store the map object for convienience
+    var map = leaflet_tools.map();
+
+    // add TransAM map customizations
+    leaflet_tools.addZoomSliderControl();
+    leaflet_tools.addFullscreenControl(document.getElementById('mapContainer'));
+    leaflet_tools.addSidebar('map_sidebar');
+    //leaflet_tools.addLayerControl();
+
+    // configure navbar
+    if(!leaflet_tools.navbarControl) {
+      leaflet_tools.addNavbar({
+        home_center: map.getCenter(),
+        home_zoom: map.getZoom()
+      });
+    }
+
+    // More customization in the map providing more tools
+    var locate_option = #{(Rails.application.config.transam_spatial_map_options.include? "locate").to_s};
+    var draw_option = #{(Rails.application.config.transam_spatial_map_options.include? "draw").to_s};
+    var esri_option = #{(Rails.application.config.transam_spatial_map_options.include? "esri").to_s};
+
+    if (locate_option) {
+      // Allow the user to locate themselves on the map using the HTML 5 fuctions
+      var location_control = new L.control.locate().addTo(map);
+    }
+
+    if (draw_option) {
+      // Add a feature groups for selecting
+      var featureGroup = L.featureGroup().addTo(map);
+
+      var drawControl = new L.Control.Draw({
+        edit: {
+          featureGroup: featureGroup
+        }
+      }).addTo(map);
+
+      map.on('draw:created', function(e) {
+          featureGroup.addLayer(e.layer);
+      });
+    }
+
+    // Add the mouse position plugin
+    L.control.mousePosition().addTo(map);
+
+    // Cache map snapshot when leaving map page
+    window.onbeforeunload = function(){
+      if(_isCaching) {
+        localStorage.setItem(MAP_SNAPSHOT_CACHE_KEY, JSON.stringify(getMapSnapshot()));
+      }
+    }
+
+    // Resize map along with window resizing
+    $( window ).resize(function() {
+      resize_map();
+    });
+
+    // after page load, apply previous map snapshot
+    if(!(#{@show_default || false})) {
+      restoreMap();
+    }
+
+    // reset map
+    $('#resetMap').on('click', function(e){
+      leaflet_tools.sidebarControl.close();
+      localStorage.removeItem(MAP_SNAPSHOT_CACHE_KEY);
+      _isCaching = false;
+      window.location.reload();
+    });
+
+    // load default asset_type
+    if(#{params[:asset_type_id].present? || false}) {
+      $('input.asset_type_layer[data-type=' + "#{params[:asset_type_id]}" +  ']').trigger('change');
+    }
+  });

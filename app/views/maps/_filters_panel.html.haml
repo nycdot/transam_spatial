@@ -1,0 +1,107 @@
+%h3
+  = "Filters"
+
+- filter_module_names = []
+#filterContainer.panel-group{role:"tablist", "aria-multiselectable":"true"}
+  = simple_form_for(@searcher,
+  :as => :searcher,
+  :url => geojson_map_searches_path(format: :json),
+  :method => 'post',
+  :html => {:class => 'form-vertical'},
+  :remote => true,
+  :wrapper => :vertical_form,
+  :wrapper_mappings => {:check_boxes => :vertical_radio_and_checkboxes, :radio_buttons => :horizontal_radio_and_checkboxes, :file => :vertical_file_input, :boolean => :vertical_boolean},
+  :defaults => {:include_blank => "Any...", :required => false} ) do |f|
+    - @search_form = f
+    = hidden_field_tag :search_type, SearchType.find_by(class_name: 'AssetMapSearcher').id
+
+    - if lookup_context.template_exists?("app_filters_panel", 'maps', true)
+      - filter_module_names << 'app'
+      = render :partial => "maps/app_filters_panel"
+
+    - SystemConfig.transam_module_names.each do |mod|
+      - if lookup_context.template_exists?("#{mod}_filters_panel", 'maps', true)
+        - filter_module_names << mod
+        = render :partial => "maps/#{mod}_filters_panel"
+
+    .row{style: "margin-top: 20px;"}
+      .col-md-12
+        = f.button :submit, 'Apply', :class=>"btn btn-primary", :id => 'submit_filters_btn'
+        = button_tag 'Reset', :type => 'button', :class=> 'btn btn-warning reset-button', :id => 'reset_filters_btn'
+
+:javascript
+  var filter_module_names = #{filter_module_names.to_json.html_safe};
+  function cache_filters() {
+    var filters = {};
+
+    filter_module_names.forEach(function(mod_name) {
+      var filter_func_name = "cache_" + mod_name + "_filters";
+      if(window[filter_func_name]) {
+        var mod_filters = window[filter_func_name]();
+        if(mod_filters) {
+          for(var filter_name in mod_filters) {
+            filters[filter_name] = mod_filters[filter_name];
+          }
+        }
+      }
+    });
+
+    return filters;    
+  }
+
+  function load_cached_filters(filters) {
+    filter_module_names.forEach(function(mod_name) {
+      var filter_func_name = "load_cached_" + mod_name + "_filters";
+      if(window[filter_func_name]) {
+        window[filter_func_name](filters);
+      }
+    });
+  }
+
+  function reset_filters() {
+    filter_module_names.forEach(function(mod_name) {
+      var filter_func_name = "reset_" + mod_name + "_filters";
+      if(window[filter_func_name]) {
+        window[filter_func_name](filters);
+      }
+    });
+  }
+
+  $(function() {
+    $('#new_searcher').validate({
+      submitHandler: function(form) {
+        form.submit();
+      }
+    });
+
+    $('#submit_filters_btn').click(function() {
+      if($('#new_searcher').valid()) {
+        reload_asset_layers();
+      }
+
+      return false;
+    });
+
+    function clear_search_form_values() {
+      $(':input[type!=checkbox]','#new_searcher')
+        .not(':button, :submit, :reset, :hidden')
+        .val('');
+
+      $(':input[type=checkbox]','#new_searcher')
+        .prop('checked', false);
+
+      $('option','#new_searcher')
+        .prop('selected', false);
+    }
+
+    $('#reset_filters_btn').click(function() {
+      $('#new_searcher label.error').remove();
+      $('#new_searcher .error').removeClass('error');
+
+      clear_search_form_values();
+
+      reset_filters();
+    });
+  });
+
+

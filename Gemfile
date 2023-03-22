@@ -5,13 +5,22 @@ source "https://rubygems.org"
 # Git. Remember to move these dependencies to your gemspec before releasing
 # your gem to rubygems.org.
 
+gem 'active_record-acts_as', git: 'https://github.com/camsys/active_record-acts_as', branch: 'master' # use our fork
+
 # To use debugger
 # gem 'debugger'
-gem 'transam_core', :github => 'camsys/transam_core'
-gem 'mysql2', '~> 0.3.20' # lock gem for dummy app
+gem 'transam_core', git: 'https://github.com/camsys/transam_core', branch: :master
+
+# needed for testing spatial mixins on transit models
+gem 'transam_transit', git: 'https://github.com/camsys/transam_transit', branch: :master
+
+gem 'mysql2', "~> 0.5.1" # lock gem for dummy app
 gem "capybara", '2.6.2' # lock gem for old capybara behavior on hidden element xpath
+gem 'activerecord-mysql2rgeo-adapter', git: 'https://github.com/camsys/activerecord-mysql2rgeo-adapter', branch: 'master'
 gem "rgeo"
 gem 'rgeo-geojson'
+gem 'rgeo-proj4'
+gem 'figaro' # need to add an application.yml because need API keys to test geocode libraries
 
 group :development, :test do
   gem 'byebug'
