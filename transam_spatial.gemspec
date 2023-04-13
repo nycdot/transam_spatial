@@ -18,15 +18,15 @@ Gem::Specification.new do |s|
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
 
-  s.add_dependency 'rails', '~> 5.2'
+  s.add_dependency 'rails', '~> 6.1', '>= 6.1.7.3'
 
   s.add_dependency 'rails-data-migrations'
 
-  s.add_dependency "geocoder"
+  s.add_dependency "geocoder", '1.5.1'
 
   s.add_development_dependency "georuby", '~> 2.2.1'
   s.add_development_dependency "rspec-rails"
-  s.add_development_dependency "factory_bot_rails"
+  s.add_development_dependency "factory_bot_rails", '4.11.1'
   s.add_development_dependency "database_cleaner"
   s.add_development_dependency "mysql2"
   s.add_development_dependency "cucumber-rails"

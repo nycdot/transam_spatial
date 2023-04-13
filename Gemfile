@@ -9,17 +9,19 @@ gem 'active_record-acts_as', git: 'https://github.com/camsys/active_record-acts_
 
 # To use debugger
 # gem 'debugger'
-gem 'transam_core', git: 'https://github.com/camsys/transam_core', branch: :quarter4
+gem 'transam_core', git: 'https://github.com/nycdot/transam_core.git', branch: 'rails-6'
+# gem 'transam_core', path: "../transam_core"
 
 # needed for testing spatial mixins on transit models
-gem 'transam_transit', git: 'https://github.com/camsys/transam_transit', branch: :quarter4
+gem 'transam_transit', git: 'https://github.com/nycdot/transam_transit.git', branch: 'rails-6'
+# gem 'transam_transit', path: "../transam_transit"
 
 gem 'mysql2', "~> 0.5.1" # lock gem for dummy app
 gem "capybara", '2.6.2' # lock gem for old capybara behavior on hidden element xpath
 gem 'activerecord-mysql2rgeo-adapter', git: 'https://github.com/camsys/activerecord-mysql2rgeo-adapter', branch: 'master'
-gem "rgeo"
+gem "rgeo", '2.4.0'
 gem 'rgeo-geojson'
-gem 'rgeo-proj4'
+gem 'rgeo-proj4', '3.1.1'
 gem 'figaro' # need to add an application.yml because need API keys to test geocode libraries
 
 group :development, :test do

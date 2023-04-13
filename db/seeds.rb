@@ -1,8 +1,9 @@
 #encoding: utf-8
 
 # determine if we are using postgres or mysql
-is_mysql = (ActiveRecord::Base.configurations[Rails.env]['adapter'].include? 'mysql2')
-is_sqlite =  (ActiveRecord::Base.configurations[Rails.env]['adapter'] == 'sqlite3')
+active_record_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: 'primary').configuration_hash
+is_mysql = (active_record_config[:adapter].include? 'mysql2')
+is_sqlite =  (active_record_config[:adapter] == 'sqlite3')
 
 #------------------------------------------------------------------------------
 #
