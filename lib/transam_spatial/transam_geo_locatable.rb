@@ -224,17 +224,21 @@ module TransamGeoLocatable
         end
 
         # set nodes if used
-        if _use_nodes
+        if _use_nodes && parser.from_node.present?
           if self.from_node && (self.from_node != parser.from_node)
-            puts "node mismatch for #{order_number}! #{self.from_node} != #{parser.from_node}"
-          else
-            self.from_node = parser.from_node
+            Rails.logger.debug "node mismatch for #{order_number}! #{self.from_node} != #{parser.from_node}"
           end
+
+          self.from_node = parser.from_node
+        end
+
+        if _use_nodes && parser.to_node.present?
           if self.to_node && (self.to_node != parser.to_node)
             puts "node mismatch for #{order_number}! #{self.to_node} != #{parser.to_node}"
-          else
-            self.to_node = parser.to_node
+            Rails.logger.debug "node mismatch for #{order_number}! #{self.to_node} != #{parser.to_node}"
           end
+
+          self.to_node = parser.to_node
         end
       end
     end
