@@ -1,24 +1,24 @@
 <% if Rails.application.config.transam_spatial_map_control == "leaflet" %>
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
-  <%= javascript_include_tag "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js" %>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" integrity="sha256-kppfhjLcF3Ed3khcHaHHlVnM8SzDTOzpx4vkSnDUUx0=" crossorigin="anonymous" />
+  <%= javascript_include_tag "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js", integrity: "sha256-+omBlrgAuRnUeZSEE+vYBELG4d22HtSprzHPAuM9d0Y=", crossorigin: "anonymous" %>
 
 <% elsif  Rails.application.config.transam_spatial_map_control == "mapbox" %>
 
-  <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.4/mapbox.css' rel='stylesheet' />
-  <script src='https://api.tiles.mapbox.com/mapbox.js/v2.1.4/mapbox.js'></script>
+  <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.4/mapbox.css' rel='stylesheet' integrity="sha256-Xb5XVMB+HW4if0bAD9QsphpB4Fv2U8eJ8OGxBb96naI=" crossorigin="anonymous" />
+  <script src='https://api.tiles.mapbox.com/mapbox.js/v2.1.4/mapbox.js' integrity="sha256-Yw8eN4CzOhTtZYbcyhpsT0Wbwweq00JyrpQ9sHzGlQc=" crossorigin="anonymous" ></script>
 <% end %>
 
 <% if Rails.application.config.transam_spatial_map_options.include? "esri" %>
-  <%= javascript_include_tag "https://cdnjs.cloudflare.com/ajax/libs/esri-leaflet/1.0.4/esri-leaflet.js" %>
+  <%= javascript_include_tag "https://cdnjs.cloudflare.com/ajax/libs/esri-leaflet/1.0.4/esri-leaflet.js", integrity: "sha256-f07pIZhBKuS7locVZbGsoORimR6gjVAfi4K/qXbhppo=", crossorigin: "anonymous" %>
 <% end %>
 
 <% if Rails.application.config.transam_spatial_map_options.include? "draw" %>
-  <link rel='stylesheet' href='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.css'  />
-  <%= javascript_include_tag "https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.js" %>
+  <link rel='stylesheet' href='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.css' integrity="sha256-SVprUMyh3AbfYq2nwZxuwtV5+CR/dIfqagieTY19bcM=" crossorigin="anonymous" />
+  <%= javascript_include_tag "https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.js", integrity: "sha256-dKgvhfuPLi42gd2eklzflCyTnO9cUZnM5aELFnxzChc=", crossorigin: "anonymous" %>
 <% end %>
 
 <% if Rails.application.config.transam_spatial_map_options.include? "locate" %>
-  <link rel='stylesheet' href='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-locatecontrol/v0.24.0/L.Control.Locate.css'  />
-  <%= javascript_include_tag "https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-locatecontrol/v0.24.0/L.Control.Locate.js" %>
+  <link rel='stylesheet' href='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-locatecontrol/v0.24.0/L.Control.Locate.css' integrity="sha256-p/I6Jw98pGQ6fLNXETYxbHPZeYu7X8onRy0G8oe7byk=" crossorigin="anonymous" />
+  <%= javascript_include_tag "https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-locatecontrol/v0.24.0/L.Control.Locate.js", integrity: "sha256-9z+cgdUEw+HjxvWz6FqDJRqHj/+6f/uabDWf1QGpUG0=", crossorigin: "anonymous"  %>
 <% end %>
